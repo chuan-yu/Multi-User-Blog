@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+<div class="col-sm-6 col-sm-offset-3">
+
+    <form method="post" id="signup_form">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" id="username" name="username" value="{{username}}">
+            <p class="error" id="username_error">{{username_error}}</p>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" id="password" name="password">
+            <p class="error" id="password_error">{{password_error}}</p>
+        </div>
+
+        <div class="form-group">
+            <label for="verify">Verify Password</label>
+            <input type="password" class="form-control" id="verify" name="verify">
+            <p class="error" id="verify_error">{{verify_error}}</p>
+        </div>
+
+        <div class="form-group">
+            <label for="email">E-mail(optional)</label>
+            <input type="text" class="form-control" id="email" name="email">
+            <p class="error" id="email_error">{{email_error}}</p>
+        </div>
+
+        <button type="submit" class="btn btn-default">Sign up</button>
+        <a href="{{login_url}}" class="btn btn-default">Already have an account?</a>
+    </form>
+
+</div>
+
+{% endblock%}

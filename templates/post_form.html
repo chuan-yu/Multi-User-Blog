@@ -1,0 +1,26 @@
+<!-- This template is used to display the new post submission form -->
+
+{% extends "base.html" %}
+
+{% block title %}New Post{% endblock %}
+
+{% block content %}
+
+<h2>{{heading}}</h2>
+<form method="post">
+
+    <div class="form-group">
+        <label for="subject">Subject</label>
+        <input type="text" class="form-control" name="subject" value="{{subject}}">
+    </div>
+
+    <div class="form-group">
+        <lable for="content">Content</lable>
+        <textarea class="form-control" rows="15" cols="70" name="content">{{content}}</textarea>
+    </div>
+
+    <p class="error" id="post_form_error">{{error}}</p>
+    <button type="submit" class="btn btn-default">Submit</button>
+</form>
+
+{% endblock %}

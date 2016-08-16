@@ -1,0 +1,38 @@
+<!-- This template is used to display the blog main page -->
+
+{% extends "base.html" %}
+
+{% block title %}Udacity Blog{% endblock %}
+
+{% block content %}
+
+<div class="article-list col-sm-8 col-sm-offset-2">
+<h1 class="blog-title">Udacity Blog</h1>
+{% for post in posts %}
+<article>
+    <h1 class="article-title"><a href="{{single_post_url_head}}/{{post.key.id()}}">{{post.subject}}</a></h1>
+    <div class="article-meta">
+        <p class="autor">Author: {{post.author.username}}</p>
+        <p class="date">Posted On: {{post.created.strftime("%d-%m-%Y %H:%M")}}</p>
+    </div>
+    <p class="content">{{post.content}}</p>
+    <div class="article-footer">
+        <p class="like">
+            <a href="{{like_url_head}}/{{post.key.id()}}">
+            {% if user.key in post.liked_by: %}
+            Unlike
+            {% else: %}
+            Like
+            {% endif %}
+            </a>
+        </p>
+        <p class="comments"><a href="{{new_comment_url_head}}/{{post.key.id()}}">Comment</a>
+        {% if user.username == post.author.username: %}
+        <p class="edit"><a href="{{edit_post_url_head}}/{{post.key.id()}}">Edit</a></p>
+        {% endif %}
+        </p>
+    </div>
+</article>
+{% endfor %}
+</div>
+{% endblock%}

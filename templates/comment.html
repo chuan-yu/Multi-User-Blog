@@ -1,0 +1,19 @@
+<!-- This template is used to display the new post submission form -->
+
+{% extends "base.html" %}
+
+{% block title %}New Comment{% endblock %}
+
+{% block content %}
+<div class="col-sm-6 col-sm-offset-3">
+    <form method="post" id="comment_form">
+        <div class="form-group">
+            <label for="content">Comment</label>
+            <textarea class="form-control" rows="8" cols="70" name="content">{{content}}</textarea>
+        </div>
+        <p class="error" id="comment_form_error">{{error}}</p>
+
+        <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+</div>
+{% endblock %}

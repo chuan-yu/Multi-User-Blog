@@ -1,0 +1,35 @@
+<!-- This template is used to display single blog post -->
+
+
+{% extends "base.html" %}
+{% block title %}{{post.subject}}{% endblock %}
+
+{% block content %}
+
+<article class="col-sm-8 col-sm-offset-1">
+    <h1>{{post.subject}}</h1>
+    <div class="article-meta">
+        <p class="author">Author: {{post.author_key.get().username}}</p>
+        <p class="date">Posted on: {{post.created.strftime("%d-%m-%Y %H:%M")}}</p>
+        <a class="edit" href="{{edit_post_url_head}}/{{post.key.id()}}">Edit</a>
+    </div>
+    <p>{{post.content}}</p>
+    {% if comments: %}
+    <hr>
+    <h3>Comments</h2>
+    <ul class="comments">
+        {% for comment in comments %}
+        <li>
+            <p class="username">{{comment.user.username}} says:</p>
+            <p class="updated-datetime">{{comment.updated.strftime("%d-%m-%Y %H:%M")}}</p>
+            <p class="content">{{comment.content}}</p>
+            {% if current_user_key == comment.user.key %}
+            <p class="edit"><a href="{{edit_comment_url_head}}/{{comment.key.id()}}">Edit Comment</a></p>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</article>
+{% endif %}
+
+{% endblock %}
