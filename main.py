@@ -169,7 +169,7 @@ class NewPost(Handler):
         else:
             post = Post(subject=subject, content=content, author_key=self.user.key)
             post_key = post.put()
-            self.redirect("/%s" % post_key.id())
+            self.redirect(SINGLE_POST_URL_HEAD + '/' + str(post_key.id()))
 
 class SinglePostPage(Handler):
     def get(self):
