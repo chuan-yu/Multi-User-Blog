@@ -140,10 +140,12 @@ class MainPage(Handler):
         posts = Post.query().order(-Post.created).fetch()
         posts = prefetch(posts, 'author_key', 'author')
         user = self.user
+        previous_url = self.request.url
         self.render("blog.html", posts=posts,
                     single_post_url_head=SINGLE_POST_URL_HEAD,
                     logout_url=LOGOUT_URL,
                     edit_post_url_head=EDIT_POST_URL_HEAD,
+                    previous_url=previous_url,
                     like_url_head=LIKE_URL_HEAD,
                     new_comment_url_head=NEW_COMMENT_URL_HEAD)
 
@@ -186,14 +188,15 @@ class SinglePostPage(Handler):
             self.error(404)
             return
         else:
-            self.render("post.html", post=post,
+            self.render("post.html",
+                        post=post,
                         edit_post_url_head=EDIT_POST_URL_HEAD,
-                        comments=comments, current_user_key=current_user_key,
+                        comments=comments,
+                        current_user_key=current_user_key,
                         edit_comment_url_head=EDIT_COMMENT_URL_HEAD)
 
 class EditPost(Handler):
     def get(self):
-        logging.info(self.user)
         # Check if user is logged in
         if not self.user:
             self.redirect(LOGIN_URL)
@@ -207,19 +210,18 @@ class EditPost(Handler):
             self.redirect(EDIT_ERROR_URL)
         else:
             subject = post.subject
-            logging.info('subject=' + subject)
             content = post.content
             self.render("post_form.html",
                         heading="Edit Post",
                         subject=subject,
-                        content=content)
+                        content=content,
+                        previous_url=self.request.referer)
 
     def post(self):
         # check if user is logged in
         if not self.user:
             self.redirect(LOGIN_URL)
             return
-
         post_id = self.get_id_from_url()
         post = Post.get_by_id(int(post_id))
         # Get the subject and content on the Edit Form
@@ -231,6 +233,7 @@ class EditPost(Handler):
                         heading="Edit Post",
                         subject=new_subject,
                         content=new_content,
+                        previous_url=self.request.referer,
                         error=POST_FORM_ERROR_MESSAGE)
             return
         # Track whether subject or content is updated
@@ -305,7 +308,7 @@ class CommentPost(Handler):
         if not self.user:
             self.redirect(LOGIN_URL)
             return
-        self.render("comment.html")
+        self.render("comment.html", previous_url=self.request.referer)
 
     def post(self):
         # check if logged in
@@ -318,13 +321,18 @@ class CommentPost(Handler):
         post = Post.get_by_id(int(post_id))
         if not post:
             COMMENT_POST_NOT_FOUND_MESSAGE = "No post was found"
-            self.render("error.html", error=COMMENT_POST_NOT_FOUND_MESSAGE, homepage_url=MAIN_URL)
+            self.render("error.html",
+                        previous_url=self.request.referer,
+                        error=COMMENT_POST_NOT_FOUND_MESSAGE,
+                        homepage_url=MAIN_URL)
             return
 
         content = self.request.get('content')
         if not content:
             COMMENT_FORM_ERROR_MESSAGE = "Comments must not be blank"
-            self.render("comment.html", error=COMMENT_FORM_ERROR_MESSAGE)
+            self.render("comment.html",
+                        previous_url=self.request.referer,
+                        error=COMMENT_FORM_ERROR_MESSAGE)
         else:
             comment = Comment(content=content, post_key=post.key, user_key=self.user.key)
             comment.put()
@@ -345,7 +353,9 @@ class EditComment(Handler):
                             homepage_url=MAIN_URL)
                 return
             content = comment.content
-            self.render("comment.html", content=content)
+            self.render("comment.html",
+                        previous_url=self.request.referer,
+                        content=content)
         else:
             self.render("error.html", error_message="Comment not found",
                         homepage_url=MAIN_URL)
