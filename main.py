@@ -23,6 +23,9 @@ SINGLE_POST_URL = SINGLE_POST_URL_HEAD + '/[0-9]+'
 EDIT_POST_URL_HEAD = '/post/edit'
 EDIT_POST_URL = EDIT_POST_URL_HEAD + '/[0-9]+'
 EDIT_ERROR_URL = '/edit/error'
+DELETE_POST_URL_HEAD = '/delete'
+DELETE_POST_URL = DELETE_POST_URL_HEAD + '/[0-9]+'
+DELETE_POST_ERROR_URL = '/post/delete/error'
 LIKE_URL_HEAD = '/like'
 LIKE_URL = LIKE_URL_HEAD + '/[0-9]+'
 LIKE_ERROR_URL = '/like/error'
@@ -145,6 +148,7 @@ class MainPage(Handler):
                     single_post_url_head=SINGLE_POST_URL_HEAD,
                     logout_url=LOGOUT_URL,
                     edit_post_url_head=EDIT_POST_URL_HEAD,
+                    delete_post_url_head=DELETE_POST_URL_HEAD,
                     previous_url=previous_url,
                     like_url_head=LIKE_URL_HEAD,
                     new_comment_url_head=NEW_COMMENT_URL_HEAD)
@@ -253,6 +257,28 @@ class EditPostError(Handler):
     def get(self):
         EDIT_ERROR_MESSEAGE = "Sorry. You don't have the permission to edit the post"
         self.render("error.html", error_message=EDIT_ERROR_MESSEAGE, homepage_url=MAIN_URL)
+
+class DeletePost(Handler):
+    def get(self):
+        # check if user is logged in
+        if not self.user:
+            self.redirect(LOGIN_URL)
+            return
+        post_id = self.get_id_from_url()
+        post = Post.get_by_id(int(post_id))
+        if not post:
+            error(404)
+            return
+        if post.author_key != self.user.key:
+            self.redirect(DELETE_POST_ERROR_URL)
+        else:
+            post.key.delete()
+            self.redirect(MAIN_URL)
+
+class DeletePostError(Handler):
+    def get(self):
+        DELETE_POST_ERROR_MESSAGE = "Sorry. You don't have the permission to delete the post"
+        self.render("error.html", error_message=DELETE_POST_ERROR_MESSAGE)
 
 class LikePost(Handler):
     def get(self):
@@ -551,6 +577,8 @@ app = webapp2.WSGIApplication([
     (MAIN_URL, MainPage),
     (NEW_POST_URL, NewPost),
     (EDIT_POST_URL, EditPost),
+    (DELETE_POST_URL, DeletePost),
+    (DELETE_POST_ERROR_URL, DeletePostError),
     (EDIT_ERROR_URL, EditPostError),
     (SINGLE_POST_URL, SinglePostPage),
     (LOGIN_URL, Login),
