@@ -195,6 +195,7 @@ class SinglePostPage(Handler):
             self.render("post.html",
                         post=post,
                         edit_post_url_head=EDIT_POST_URL_HEAD,
+                        delete_post_url_head=DELETE_POST_URL_HEAD,
                         comments=comments,
                         current_user_key=current_user_key,
                         edit_comment_url_head=EDIT_COMMENT_URL_HEAD)

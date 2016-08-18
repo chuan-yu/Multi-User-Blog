@@ -11,7 +11,8 @@
     <div class="article-meta">
         <p class="author">Author: {{post.author_key.get().username}}</p>
         <p class="date">Posted on: {{post.created.strftime("%d-%m-%Y %H:%M")}}</p>
-        <a class="edit" href="{{edit_post_url_head}}/{{post.key.id()}}">Edit</a>
+        <p class="edit"><a href="{{edit_post_url_head}}/{{post.key.id()}}">Edit</a></p>
+        <p class="delete"><a href="{{delete_post_url_head}}/{{post.key.id()}}">Delete</a></p>
     </div>
     <p>{{post.content}}</p>
     {% if comments: %}

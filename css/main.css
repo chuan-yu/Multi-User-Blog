@@ -20,6 +20,10 @@ Main Page
 }
 
 .article-meta p {
+    margin-right: 15px
+}
+
+.article-meta p {
     display: inline-block;
     margin-right: 15px;
     color: rgb(153, 153, 153);
