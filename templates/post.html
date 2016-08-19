@@ -11,6 +11,15 @@
     <div class="article-meta">
         <p class="author">Author: {{post.author_key.get().username}}</p>
         <p class="date">Posted on: {{post.created.strftime("%d-%m-%Y %H:%M")}}</p>
+        <p class="like">
+            <a href="{{like_url_head}}/{{post.key.id()}}">
+            {% if user.key in post.liked_by: %}
+            Unlike
+            {% else: %}
+            Like
+            {% endif %}
+            </a>
+        </p>
         <p class="comments"><a href="{{new_comment_url_head}}/{{post.key.id()}}">Comment</a>
         <p class="edit"><a href="{{edit_post_url_head}}/{{post.key.id()}}">Edit</a></p>
         <p class="delete"><a href="{{delete_post_url_head}}/{{post.key.id()}}">Delete</a></p>

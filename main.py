@@ -170,6 +170,7 @@ class SinglePostPage(Handler):
         else:
             self.render("post.html",
                         post=post,
+                        like_url_head=LIKE_URL_HEAD,
                         new_comment_url_head=NEW_COMMENT_URL_HEAD,
                         edit_post_url_head=EDIT_POST_URL_HEAD,
                         delete_post_url_head=DELETE_POST_URL_HEAD,
@@ -280,7 +281,7 @@ class LikePost(Handler):
                 self.redirect(LIKE_ERROR_URL)
             else:
                 self.like(post)
-                self.redirect(MAIN_URL)
+                self.redirect(self.request.referer)
 
     def unlike(self, post):
         # Remove the current user key from the liked_by list
