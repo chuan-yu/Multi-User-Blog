@@ -36,24 +36,6 @@ EDIT_COMMENT_URL = EDIT_COMMENT_URL_HEAD + '/[0-9]+'
 
 SECRET = 'l7"aXoV01o6A$#_B?8<@,13gF.#|S%'
 
-# Fetch entity using key_name and store entity as attribute attr_name
-# Example:
-# prefetch(posts, author_key, author)
-# For each post in posts, a query is made using author_key and the result
-# is stored as an attribute name author of each post, i.e. post.author
-def prefetch(entities, key_name, attr_name):
-    # Asyncronously get author for each post
-    for e in entities:
-        if getattr(e, key_name):
-           setattr(e, attr_name, getattr(e, key_name).get_async())
-
-    # Replace Future objects with the real author
-    for e in entities:
-        if getattr(e, attr_name):
-            setattr(e, attr_name, getattr(e, attr_name).get_result())
-
-    return entities
-
 # A generic handler that other handlers inherit.
 # It includes functions used for rendering jinja template
 class Handler(webapp2.RequestHandler):
@@ -99,13 +81,19 @@ class Handler(webapp2.RequestHandler):
         webapp2.RequestHandler.initialize(self, *a, **kw)
         user_id = self.read_user_id()
         if user_id:
-            self.user = User.get_by_id(int(user_id))
+            self.user = User.get_by_id(int(user_id), parent=users_key())
         else:
             self.user = None
 
 
 
 # Blog Part
+
+# Blog helper functions
+
+# Create ancestor key for Post
+def blog_key(name='default'):
+    return ndb.Key('blogs', name)
 
 # Create blog Post database entity model
 class Post(ndb.Model):
@@ -117,31 +105,16 @@ class Post(ndb.Model):
     created = ndb.DateTimeProperty(auto_now_add=True)
     updated = ndb.DateTimeProperty(auto_now=True)
 
-    @staticmethod
-    def prefetch_authors(posts):
-        # Asyncronously get author for each post
-        for post in posts:
-            if post.author_key:
-                post.author = post.author_key.get_async()
-
-        # Replace Future objects with the real author
-        for post in posts:
-            if post.author:
-                post.author = post.author.get_result()
-
-        return posts
-
 # Create post Comment database entity model
 class Comment(ndb.Model):
     content = ndb.TextProperty(required=True)
     post_key = ndb.KeyProperty(kind='Post', required=True)
-    user_key = ndb.KeyProperty(kind='User', required=True)
     updated = ndb.DateTimeProperty(auto_now=True)
 
 class MainPage(Handler):
     def get(self):
-        posts = Post.query().order(-Post.created).fetch()
-        posts = prefetch(posts, 'author_key', 'author')
+        posts = Post.query(ancestor=blog_key()).order(-Post.created).fetch()
+
         user = self.user
         previous_url = self.request.url
         self.render("blog.html", posts=posts,
@@ -173,7 +146,8 @@ class NewPost(Handler):
                         heading="New Post",
                         error=POST_FORM_ERROR_MESSAGE)
         else:
-            post = Post(subject=subject, content=content, author_key=self.user.key)
+            post = Post(subject=subject, content=content,
+                        author_key=self.user.key, parent=blog_key())
             post_key = post.put()
             self.redirect(SINGLE_POST_URL_HEAD + '/' + str(post_key.id()))
 
@@ -182,9 +156,8 @@ class SinglePostPage(Handler):
         # Get post_id from url
         post_id = self.get_id_from_url()
         # query post by id
-        post = Post.get_by_id(int(post_id))
+        post = Post.get_by_id(int(post_id), parent=blog_key())
         comments = Comment.query(Comment.post_key==post.key).fetch()
-        comments = prefetch(comments, 'user_key', 'user')
         current_user_key = None
         if self.user:
             current_user_key = self.user.key
@@ -207,7 +180,7 @@ class EditPost(Handler):
             self.redirect(LOGIN_URL)
             return
         post_id = self.get_id_from_url()
-        post = Post.get_by_id(int(post_id))
+        post = Post.get_by_id(int(post_id), parent=blog_key())
         if not post:
             self.error(404)
             return
@@ -228,7 +201,7 @@ class EditPost(Handler):
             self.redirect(LOGIN_URL)
             return
         post_id = self.get_id_from_url()
-        post = Post.get_by_id(int(post_id))
+        post = Post.get_by_id(int(post_id), parent=blog_key())
         # Get the subject and content on the Edit Form
         new_subject = self.request.get('subject')
         new_content = self.request.get('content')
@@ -266,7 +239,7 @@ class DeletePost(Handler):
             self.redirect(LOGIN_URL)
             return
         post_id = self.get_id_from_url()
-        post = Post.get_by_id(int(post_id))
+        post = Post.get_by_id(int(post_id), parent=blog_key())
         if not post:
             error(404)
             return
@@ -289,7 +262,7 @@ class LikePost(Handler):
             return
 
         post_id = self.get_id_from_url()
-        post = Post.get_by_id(int(post_id))
+        post = Post.get_by_id(int(post_id), parent=blog_key())
         if not post:
             error(404)
             return
@@ -297,8 +270,6 @@ class LikePost(Handler):
         if self.user.key in post.liked_by:
             # If user already liked it, unlike
             self.unlike(post)
-            # Wait for database likes to be updated before redirect
-            time.sleep(0.5)
             self.redirect(MAIN_URL)
         else:
             # If it is user's own post, redirect to error page
@@ -306,8 +277,6 @@ class LikePost(Handler):
                 self.redirect(LIKE_ERROR_URL)
             else:
                 self.like(post)
-                # Wait for database likes to be updated before redirect
-                time.sleep(0.5)
                 self.redirect(MAIN_URL)
 
     def unlike(self, post):
@@ -345,7 +314,7 @@ class CommentPost(Handler):
 
         # Query the post. If not found, redirect to the error page
         post_id = self.get_id_from_url()
-        post = Post.get_by_id(int(post_id))
+        post = Post.get_by_id(int(post_id), parent=blog_key())
         if not post:
             COMMENT_POST_NOT_FOUND_MESSAGE = "No post was found"
             self.render("error.html",
@@ -361,7 +330,7 @@ class CommentPost(Handler):
                         previous_url=self.request.referer,
                         error=COMMENT_FORM_ERROR_MESSAGE)
         else:
-            comment = Comment(content=content, post_key=post.key, user_key=self.user.key)
+            comment = Comment(content=content, post_key=post.key, parent=self.user.key)
             comment.put()
             self.redirect(SINGLE_POST_URL_HEAD + '/' + str(post.key.id()))
 
@@ -371,10 +340,10 @@ class EditComment(Handler):
             self.redirect(LOGIN_URL)
             return
         comment_id = self.get_id_from_url()
-        comment = Comment.get_by_id(int(comment_id))
+        comment = Comment.get_by_id(int(comment_id), parent=self.user.key)
         # Check if user is editing his own comment
         if comment:
-            if comment.user_key != self.user.key:
+            if comment.key.parent() != self.user.key:
                 COMMENT_ERROR_MESSAGE = "You can only edit your own comment"
                 self.render("error.html", error_message=COMMENT_ERROR_MESSAGE,
                             homepage_url=MAIN_URL)
@@ -392,7 +361,7 @@ class EditComment(Handler):
             self.redirect(LOGIN_URL)
 
         comment_id = self.get_id_from_url()
-        comment = Comment.get_by_id(int(comment_id))
+        comment = Comment.get_by_id(int(comment_id), parent=self.user.key)
         new_content = self.request.get('content')
         # Check whether there is any changes to the comment content
         updated = False
@@ -453,6 +422,9 @@ def validate_cookie_user_id(secure_user_id):
     else:
         return False
 
+def users_key(group='default'):
+    return ndb.Key('users', group)
+
 # Create User database entity model
 class User(ndb.Model):
     username = ndb.StringProperty(required=True)
@@ -512,7 +484,8 @@ class Signup(Handler):
             return
         # Only stored the hashed password in the DB
         secure_password = make_secure_pw(username, password)
-        user = User(username=username, password=secure_password, email=email)
+        user = User(username=username, password=secure_password,
+                    email=email, parent=users_key())
         user_key = user.put()
         user_id = user_key.id()
         secure_user_id = make_secure_cookie_user_id(str(user_id))
@@ -532,7 +505,7 @@ class Login(Handler):
         password = self.request.get('password')
 
         if username and password:
-            user = User.query(User.username==username).get()
+            user = User.query(User.username==username, ancestor=users_key()).get()
             if user:
                 password_db = user.password
                 if Login.check_password(username, password, password_db):
@@ -565,7 +538,7 @@ class WelcomePage(Handler):
     def get(self):
         user_id = self.read_user_id()
         if user_id:
-            username = User.get_by_id(int(user_id)).username
+            username = User.get_by_id(int(user_id), parent=users_key()).username
             if username:
                 self.render("Welcome.html", username=username, homepage_url=MAIN_URL)
             else:

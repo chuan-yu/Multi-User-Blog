@@ -19,18 +19,19 @@
     <hr>
     <h3>Comments</h2>
     <ul class="comments">
-        {% for comment in comments %}
+        {% for comment in comments: %}
         <li>
-            <p class="username">{{comment.user.username}} says:</p>
+            <p class="username">{{comment.key.parent().get().username}} says:</p>
             <p class="updated-datetime">{{comment.updated.strftime("%d-%m-%Y %H:%M")}}</p>
             <p class="content">{{comment.content}}</p>
-            {% if current_user_key == comment.user.key %}
+            {% if current_user_key == comment.key.parent() %}
             <p class="edit"><a href="{{edit_comment_url_head}}/{{comment.key.id()}}">Edit Comment</a></p>
             {% endif %}
         </li>
         {% endfor %}
     </ul>
+    {% endif %}
 </article>
-{% endif %}
+
 
 {% endblock %}
