@@ -35,6 +35,10 @@ NEW_COMMENT_URL_HEAD = '/newcomment'
 NEW_COMMENT_URL = NEW_COMMENT_URL_HEAD + '/[0-9]+'
 EDIT_COMMENT_URL_HEAD = '/editcomment'
 EDIT_COMMENT_URL = EDIT_COMMENT_URL_HEAD + '/[0-9]+'
+DELETE_COMMENT_URL_HEAD = '/deletecomment'
+DELETE_COMMENT_URL = DELETE_COMMENT_URL_HEAD + '/[0-9]+'
+DELETE_COMMENT_ERROR_URL = '/deletecomment/error'
+
 
 SECRET = 'l7"aXoV01o6A$#_B?8<@,13gF.#|S%'
 
@@ -160,7 +164,6 @@ class SinglePostPage(Handler):
         post_id = self.get_id_from_url()
         # query post by id
         post = Post.get_by_id(int(post_id), parent=blog_key())
-        logging.info(post.comments)
         current_user_key = None
         if self.user:
             current_user_key = self.user.key
@@ -175,7 +178,8 @@ class SinglePostPage(Handler):
                         edit_post_url_head=EDIT_POST_URL_HEAD,
                         delete_post_url_head=DELETE_POST_URL_HEAD,
                         current_user_key=current_user_key,
-                        edit_comment_url_head=EDIT_COMMENT_URL_HEAD)
+                        edit_comment_url_head=EDIT_COMMENT_URL_HEAD,
+                        delete_comment_url_head=DELETE_COMMENT_URL_HEAD)
 
 class EditPost(Handler):
     def get(self):
@@ -373,6 +377,26 @@ class EditComment(Handler):
             comment.put()
         self.redirect(SINGLE_POST_URL_HEAD + '/' + str(comment.post_key.id()) )
 
+class DeleteComment(Handler):
+    def get(self):
+        # check if user is logged in
+        if not self.user:
+            self.redirect(LOGIN_URL)
+            return
+        comment_id = self.get_id_from_url()
+        comment = Comment.get_by_id(int(comment_id), parent=self.user.key)
+        if not comment:
+            self.redirect(DELETE_COMMENT_ERROR_URL)
+        else:
+            comment.key.delete()
+            self.redirect(self.request.referer)
+
+class DeleteCommentError(Handler):
+    def get(self):
+        DELETE_COMMENT_ERROR_MESSAGE = "Sorry. You don't have the permission to delete the post"
+        self.render("error.html", error_message=DELETE_COMMENT_ERROR_MESSAGE,
+                    homepage_url=MAIN_URL)
+
 # User Part
 
 # helper functions for User part
@@ -562,5 +586,7 @@ app = webapp2.WSGIApplication([
     (LIKE_URL, LikePost),
     (LIKE_ERROR_URL, LikeError),
     (NEW_COMMENT_URL, CommentPost),
-    (EDIT_COMMENT_URL, EditComment)
+    (EDIT_COMMENT_URL, EditComment),
+    (DELETE_COMMENT_URL, DeleteComment),
+    (DELETE_COMMENT_ERROR_URL, DeleteCommentError)
 ], debug=True)

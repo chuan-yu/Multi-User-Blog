@@ -18,13 +18,12 @@
     <p class="content">{{post.content}}</p>
     <div class="article-footer">
         <p class="like">
-            <a href="{{like_url_head}}/{{post.key.id()}}">
             {% if user.key in post.liked_by: %}
-            Unlike
+                {% set text = 'Unlike' %}
             {% else: %}
-            Like
+                {% set text = 'Like' %}
             {% endif %}
-            </a>
+            <a href="{{like_url_head}}/{{post.key.id()}}">{{text}} <span>[{{ post.liked_by|length }} like(s)]</span></a>
         </p>
         <p class="comments"><a href="{{new_comment_url_head}}/{{post.key.id()}}">Comment</a>
         <p class="edit"><a href="{{edit_post_url_head}}/{{post.key.id()}}">Edit</a></p>

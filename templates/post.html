@@ -11,19 +11,21 @@
     <div class="article-meta">
         <p class="author">Author: {{post.author_key.get().username}}</p>
         <p class="date">Posted on: {{post.created.strftime("%d-%m-%Y %H:%M")}}</p>
-        <p class="like">
-            <a href="{{like_url_head}}/{{post.key.id()}}">
-            {% if user.key in post.liked_by: %}
-            Unlike
-            {% else: %}
-            Like
-            {% endif %}
-            </a>
-        </p>
-        <p class="comments"><a href="{{new_comment_url_head}}/{{post.key.id()}}">Comment</a>
-        <p class="edit"><a href="{{edit_post_url_head}}/{{post.key.id()}}">Edit</a></p>
-        <p class="delete"><a href="{{delete_post_url_head}}/{{post.key.id()}}">Delete</a></p>
+        <div class="actions">
+            <p class="like">
+                {% if user.key in post.liked_by: %}
+                    {% set text = 'Unlike' %}
+                {% else: %}
+                    {% set text = 'Like' %}
+                {% endif %}
+                <a href="{{like_url_head}}/{{post.key.id()}}">{{text}} <span>[{{ post.liked_by|length }} like(s)]</span></a>
+            </p>
+            <p class="comments"><a href="{{new_comment_url_head}}/{{post.key.id()}}">Comment</a></p>
+            <p class="edit"><a href="{{edit_post_url_head}}/{{post.key.id()}}">Edit</a></p>
+            <p class="delete"><a href="{{delete_post_url_head}}/{{post.key.id()}}">Delete</a></p>
+        </div>
     </div>
+
     <p>{{post.content}}</p>
     {% if post.comments %}
     <hr>
@@ -34,7 +36,10 @@
             <p class="username">{{comment.key.parent().get().username}} says:</p>
             <p class="updated-datetime">{{comment.updated.strftime("%d-%m-%Y %H:%M")}}</p>
             <p class="content">{{comment.content}}</p>
-            <p class="edit"><a href="{{edit_comment_url_head}}/{{comment.key.id()}}">Edit Comment</a></p>
+            <div class="comment-footer">
+                <p class="edit"><a href="{{edit_comment_url_head}}/{{comment.key.id()}}">Edit</a></p>
+                <p class="edit"><a href="{{delete_comment_url_head}}/{{comment.key.id()}}">Delete</a></p>
+            </div>
         </li>
         {% endfor %}
     </ul>
