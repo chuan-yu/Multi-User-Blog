@@ -12,6 +12,8 @@ from google.appengine.ext import ndb
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
                                 autoescape=True)
+
+# URL Constants
 MAIN_URL ='/'
 SIGNUP_URL = '/signup'
 LOGIN_URL = '/login'
@@ -85,8 +87,6 @@ class Handler(webapp2.RequestHandler):
         else:
             self.user = None
 
-
-
 # Blog Part
 
 # Blog helper functions
@@ -119,8 +119,6 @@ class Comment(ndb.Model):
 class MainPage(Handler):
     def get(self):
         posts = Post.query(ancestor=blog_key()).order(-Post.created).fetch()
-
-        user = self.user
         previous_url = self.request.url
         self.render("blog.html", posts=posts,
                     single_post_url_head=SINGLE_POST_URL_HEAD,
@@ -172,6 +170,7 @@ class SinglePostPage(Handler):
         else:
             self.render("post.html",
                         post=post,
+                        new_comment_url_head=NEW_COMMENT_URL_HEAD,
                         edit_post_url_head=EDIT_POST_URL_HEAD,
                         delete_post_url_head=DELETE_POST_URL_HEAD,
                         current_user_key=current_user_key,
