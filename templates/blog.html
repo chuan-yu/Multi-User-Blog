@@ -27,10 +27,8 @@
             </a>
         </p>
         <p class="comments"><a href="{{new_comment_url_head}}/{{post.key.id()}}">Comment</a>
-        {% if user.username == post.author_key.get().username: %}
         <p class="edit"><a href="{{edit_post_url_head}}/{{post.key.id()}}">Edit</a></p>
         <p class="delete"><a href="{{delete_post_url_head}}/{{post.key.id()}}">Delete</a></p>
-        {% endif %}
         </p>
     </div>
 </article>

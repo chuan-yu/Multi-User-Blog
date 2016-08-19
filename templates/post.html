@@ -24,9 +24,7 @@
             <p class="username">{{comment.key.parent().get().username}} says:</p>
             <p class="updated-datetime">{{comment.updated.strftime("%d-%m-%Y %H:%M")}}</p>
             <p class="content">{{comment.content}}</p>
-            {% if current_user_key == comment.key.parent() %}
             <p class="edit"><a href="{{edit_comment_url_head}}/{{comment.key.id()}}">Edit Comment</a></p>
-            {% endif %}
         </li>
         {% endfor %}
     </ul>
