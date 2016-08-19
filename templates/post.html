@@ -15,11 +15,11 @@
         <p class="delete"><a href="{{delete_post_url_head}}/{{post.key.id()}}">Delete</a></p>
     </div>
     <p>{{post.content}}</p>
-    {% if comments: %}
+    {% if post.comments %}
     <hr>
     <h3>Comments</h2>
     <ul class="comments">
-        {% for comment in comments: %}
+        {% for comment in post.comments: %}
         <li>
             <p class="username">{{comment.key.parent().get().username}} says:</p>
             <p class="updated-datetime">{{comment.updated.strftime("%d-%m-%Y %H:%M")}}</p>

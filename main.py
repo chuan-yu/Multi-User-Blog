@@ -105,6 +105,11 @@ class Post(ndb.Model):
     created = ndb.DateTimeProperty(auto_now_add=True)
     updated = ndb.DateTimeProperty(auto_now=True)
 
+    @property
+    def comments(self):
+        return Comment.query().filter(Comment.post_key==self.key).fetch()
+
+
 # Create post Comment database entity model
 class Comment(ndb.Model):
     content = ndb.TextProperty(required=True)
@@ -157,7 +162,7 @@ class SinglePostPage(Handler):
         post_id = self.get_id_from_url()
         # query post by id
         post = Post.get_by_id(int(post_id), parent=blog_key())
-        comments = Comment.query(Comment.post_key==post.key).fetch()
+        logging.info(post.comments)
         current_user_key = None
         if self.user:
             current_user_key = self.user.key
@@ -169,7 +174,6 @@ class SinglePostPage(Handler):
                         post=post,
                         edit_post_url_head=EDIT_POST_URL_HEAD,
                         delete_post_url_head=DELETE_POST_URL_HEAD,
-                        comments=comments,
                         current_user_key=current_user_key,
                         edit_comment_url_head=EDIT_COMMENT_URL_HEAD)
 
