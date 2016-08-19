@@ -343,17 +343,13 @@ class EditComment(Handler):
         comment = Comment.get_by_id(int(comment_id), parent=self.user.key)
         # Check if user is editing his own comment
         if comment:
-            if comment.key.parent() != self.user.key:
-                COMMENT_ERROR_MESSAGE = "You can only edit your own comment"
-                self.render("error.html", error_message=COMMENT_ERROR_MESSAGE,
-                            homepage_url=MAIN_URL)
-                return
             content = comment.content
             self.render("comment.html",
                         previous_url=self.request.referer,
                         content=content)
         else:
-            self.render("error.html", error_message="Comment not found",
+            EDIT_COMMENT_ERROR_MESSAGE = "You can only edit or delete your own comments."
+            self.render("error.html", error_message=EDIT_COMMENT_ERROR_MESSAGE,
                         homepage_url=MAIN_URL)
 
     def post(self):
