@@ -564,7 +564,7 @@ class WelcomePage(Handler):
         if user_id:
             username = User.get_by_id(int(user_id), parent=users_key()).username
             if username:
-                self.render("Welcome.html", username=username, homepage_url=MAIN_URL)
+                self.render("welcome.html", username=username, homepage_url=MAIN_URL)
             else:
                 self.redirect(SIGNUP_URL)
         else:
